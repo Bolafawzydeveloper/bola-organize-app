@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة إدارة الدروس - مستر / بولا فوزي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- استدعاء مكتبات Firebase السحابية -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #e2e8f0;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --whatsapp-color: #25d366;
+            --purple-color: #7c3aed;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; padding-bottom: 80px; }
+        
+        .container { width: 100%; max-width: 100%; margin: 0 auto; padding: 0 5px; }
+
+        /* هيدر رفيع وصغير الحجم */
+        .app-header { 
+            background: linear-gradient(135deg, #1e3a8a, #5b21b6); 
+            color: white; 
+            padding: 12px 20px; 
+            border-radius: 14px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 8px 20px -5px rgba(30, 58, 138, 0.4); 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center; 
+            flex-wrap: wrap;
+            gap: 10px; 
+            width: 100%;
+            position: relative;
+        }
+        
+        .header-center { text-align: center; }
+        .app-header h1 { font-size: 1.3rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .app-header p { font-size: 0.75rem; opacity: 0.85; }
+
+        .header-search { width: 200px; }
+        .header-search input { 
+            background: rgba(255, 255, 255, 0.95); 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-size: 0.85rem; 
+            width: 100%; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            outline: none;
+        }
+        .header-search input:focus { background: #ffffff; width: 230px; }
+
+        .info-btn { 
+            background: rgba(255,255,255,0.25); 
+            border: none; 
+            color: white; 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 50%; 
+            font-size: 1rem; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .info-btn:hover { background: rgba(255,255,255,0.4); }
+
+        /* مؤشر حالة التزامن السحابي */
+        .sync-status { font-size: 0.7rem; background: rgba(16, 185, 129, 0.2); color: #6ee7b7; padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 16px; 
+            margin-bottom: 25px; 
+            width: 100%; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-schedule { border-right: 8px solid var(--primary-color); }
+        .card-schedule h2 { color: var(--primary-color); }
+        .card-eval { border-right: 8px solid var(--purple-color); }
+        .card-eval h2 { color: var(--purple-color); }
+        .card-pay { border-right: 8px solid var(--success-color); }
+        .card-pay h2 { color: var(--success-color); }
+
+        .card h2 { border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 18px; font-size: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+        .form-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 15px; }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.85rem; color: #334155; }
+        input, select, textarea { width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; background: #f8fafc; }
+        input:focus, select:focus { border-color: var(--primary-color); background: #fff; }
+
+        button { background-color: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: 0 3px 0 #1e40af; }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e40af; }
+        
+        .btn-icon { padding: 4px 8px; font-size: 0.7rem; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; text-transform: lowercase; }
+        .btn-edit-sm { background-color: var(--warning-color); color: white; }
+        .btn-del-sm { background-color: var(--danger-color); color: white; }
+        .btn-small { padding: 5px 10px; font-size: 0.75rem; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-warning { background-color: var(--warning-color); color: white; }
+        .btn-whatsapp { background-color: var(--whatsapp-color); color: white; }
+        .btn-purple { background-color: var(--purple-color); color: white; }
+
+        .day-section { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; width: 100%; }
+        .day-title { font-weight: 700; color: var(--primary-color); margin-bottom: 8px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #e2e8f0; padding: 8px 12px; border-radius: 6px; }
+        
+        .collapsible-content { transition: max-height 0.3s ease; overflow: hidden; }
+        .collapsible-content.collapsed { display: none; }
+
+        .slots-grid { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; margin-top: 10px; }
+        .slot-item { background: white; padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #cbd5e1; flex: 1; min-width: 220px; }
+        .slot-time { background: #dbeafe; color: var(--primary-color); padding: 3px 6px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+
+        .student-card { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; width: 100%; }
+        .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; flex-wrap: wrap; gap: 10px; background: #cbd5e1; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+
+        .month-box { background: white; padding: 15px; border-radius: 10px; margin-top: 12px; border: 1px solid #cbd5e1; width: 100%; }
+        .month-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed #e2e8f0; padding-bottom: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+
+        .weeks-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .week-item { background: #faf5ff; border: 1px solid #e9d5ff; padding: 8px 10px; border-radius: 8px; }
+        .week-item label { font-size: 0.75rem; color: #6b21a8; font-weight: bold; }
+
+        .exam-box { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; width: 100%; }
+
+        .grade-badge { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+        .grade-ممتاز { background: #d1fae5; color: #065f46; }
+        .grade-جيد { background: #e0f2fe; color: #0369a1; }
+        .grade-متوسط { background: #fef3c7; color: #92400e; }
+        .grade-تحت-متوسط { background: #ffedd5; color: #c2410c; }
+        .grade-ضعيف { background: #fee2e2; color: #991b1b; }
+        .grade-إجازة { background: #f1f5f9; color: #475569; }
+
+        .payments-container { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; align-items: center; width: 100%; }
+        .payment-pill { background-color: #e2e8f0; color: #334155; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+        .payment-pill.paid { background-color: #d1fae5; color: #065f46; font-weight: 700; }
+        .student-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+
+        footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; color: #cbd5e1; text-align: center; padding: 12px; font-size: 0.85rem; z-index: 1000; display: flex; justify-content: center; align-items: center; gap: 15px; border-top: 2px solid #334155; }
+        footer span { color: var(--success-color); font-weight: bold; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- هيدر رفيع وصغير -->
+        <header class="app-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="info-btn" onclick="toggleInfoModal()" title="معلومات عن المعلم">👨‍🔬</button>
+                <div class="sync-status" id="syncStatus">☁️ متصل</div>
+            </div>
+            <div class="header-center">
+                <h1>منظومة إدارة الدروس مستر / بولا فوزي</h1>
+            </div>
+            <div class="header-search">
+                <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث عن طالب...">
+            </div>
+        </header>
+
+        <!-- 1. جدول المواعيد الأسبوعي -->
+        <div class="card card-schedule">
+            <h2><span>📅 جدول المواعيد الأسبوعي</span><span style="font-size: 0.8rem; color: #64748b;" id="scheduleCount">0 موعد</span></h2>
+            <div class="form-row">
+                <div class="form-group" style="margin-bottom:0;"><label>المجموعة / الدرس</label><input type="text" id="slotTitle" placeholder="مثال: مجموعة اللغات"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>اليوم</label>
+                    <select id="slotDay">
+                        <option value="السبت">السبت</option><option value="الأحد">الأحد</option><option value="الإثنين">الإثنين</option><option value="الثلاثاء">الثلاثاء</option><option value="الأربعاء">الأربعاء</option><option value="الخميس">الخميس</option><option value="الجمعة">الجمعة</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;"><label>الوقت</label><input type="time" id="slotTime"></div>
+                <button id="scheduleBtn" onclick="saveScheduleSlot()">إضافة الميعاد</button>
+            </div>
+            <div id="scheduleContainer" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 2. التقييمات -->
+        <div class="card card-eval">
+            <h2><span>📊 سجل التقييمات الأسبوعية والشهري</span><span style="font-size: 0.8rem; color: #64748b;" id="evalCount">0 طالب</span></h2>
+            <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr auto;">
+                <div class="form-group" style="margin-bottom:0;"><label>اسم الطالب الكامل</label><input type="text" id="evalStudentName" placeholder="أحمد محمد"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>رقم ولي الأمر (واتساب)</label><input type="text" id="evalParentPhone" placeholder="01270546171"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>المجموعة</label>
+                    <select id="evalStudentDay">
+                        <option value="السبت">السبت</option><option value="الأحد">الأحد</option><option value="الإثنين">الإثنين</option><option value="الثلاثاء">الثلاثاء</option><option value="الأربعاء">الأربعاء</option><option value="الخميس">الخميس</option><option value="الجمعة">الجمعة</option>
+                    </select>
+                </div>
+                <button class="btn-purple" id="evalBtn" onclick="saveEvalStudent()">إضافة طالب</button>
+            </div>
+            <div id="evalContainer" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 3. المصاريف والحصص -->
+        <div class="card card-pay">
+            <h2><span>💰 متابعة حصص الطلاب والتحصيل</span><span style="font-size: 0.8rem; color: #64748b;" id="paymentCount">0 طالب</span></h2>
+            <div class="form-row" style="grid-template-columns: 2fr 1fr auto;">
+                <div class="form-group" style="margin-bottom:0;"><label>اسم الطالب الكامل</label><input type="text" id="payStudentName" placeholder="أحمد محمد"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>المجموعة</label>
+                    <select id="payStudentDay">
+                        <option value="السبت">السبت</option><option value="الأحد">الأحد</option><option value="الإثنين">الإثنين</option><option value="الثلاثاء">الثلاثاء</option><option value="الأربعاء">الأربعاء</option><option value="الخميس">الخميس</option><option value="الجمعة">الجمعة</option>
+                    </select>
+                </div>
+                <button class="btn-success" onclick="savePayStudent()">تسجيل بالحصص</button>
+            </div>
+            <div id="paymentContainer" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <h3>👨‍🔬 مستر / بولا فوزي</h3>
+            <p><strong>التخصص:</strong> معلم كيمياء<br>التطبيق متزامن سحابياً عبر Firebase.</p>
+            <button onclick="toggleInfoModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <footer>
+        جميع الحقوق محفوظة © 2026 <span>BF-digital agency</span> | 🧪 مستر بولا فوزي
+    </footer>
+
+    <script>
+        // ==========================================
+        // ⚙️اFirebase الخاص بك هنا:
+     const firebaseConfig = {
+  apiKey: "AIzaSyBu8B_1rtTuTX0Uzja4W6ZKmfDdHmHvnTc",
+  authDomain: "bola-school-app.firebaseapp.com",
+  projectId: "bola-school-app",
+  storageBucket: "bola-school-app.firebasestorage.app",
+  messagingSenderId: "256498313163",
+  appId: "1:256498313163:web:dec18fd019f388e94d784e",
+  measurementId: "G-P4B9SB60JE"
+};
+        // ==========================================
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const monthsList = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
+        let schedule = { "السبت": [], "الأحد": [], "الإثنين": [], "الثلاثاء": [], "الأربعاء": [], "الخميس": [], "الجمعة": [] };
+        let evalStudents = [];
+        let payStudents = [];
+
+        let editingSlot = null;
+        let editingEvalIndex = null;
+
+        function saveDataToCloud() {
+            db.collection("teacherData").doc("bola_data").set({
+                schedule: schedule,
+                evalStudents: evalStudents,
+                payStudents: payStudents
+            })
+            .then(() => {
+                document.getElementById('syncStatus').innerText = "☁️ متزامن";
+            })
+            .catch((error) => {
+                console.error("خطأ: ", error);
+                document.getElementById('syncStatus').innerText = "⚠️ خطأ";
+            });
+        }
+
+        function loadDataFromCloud() {
+            db.collection("teacherData").doc("bola_data").onSnapshot((doc) => {
+                if (doc.exists) {
+                    let data = doc.data();
+                    schedule = data.schedule || schedule;
+                    evalStudents = data.evalStudents || [];
+                    payStudents = data.payStudents || [];
+                    renderApp();
+                    document.getElementById('syncStatus').innerText = "☁️ متزامن";
+                } else {
+                    saveDataToCloud();
+                }
+            });
+        }
+
+        function format12Hour(time24) {
+            if (!time24) return '';
+            let [hours, minutes] = time24.split(':');
+            let h = parseInt(hours);
+            let period = h >= 12 ? 'م' : 'ص';
+            h = h % 12;
+            h = h ? h : 12;
+            return `${h}:${minutes} ${period}`;
+        }
+
+        function getTodayDateISO() {
+            const d = new Date();
+            let month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+
+        function calculateGrade(score, total) {
+            if (!total || total <= 0) return { percent: 0, text: 'لم يتم التحديد' };
+            let percent = Math.round((score / total) * 100);
+            let text = '';
+            if (percent >= 90) text = 'ممتاز';
+            else if (percent >= 80) text = 'جيد';
+            else if (percent >= 70) text = 'متوسط';
+            else if (percent >= 60) text = 'تحت متوسط';
+            else text = 'ضعيف';
+            return { percent, text };
+        }
+
+        function toggleInfoModal() {
+            let modal = document.getElementById('infoModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function renderApp() {
+            renderSchedule();
+            renderEvalStudents();
+            renderPayStudents();
+        }
+
+        function saveScheduleSlot() {
+            const title = document.getElementById('slotTitle').value.trim();
+            const day = document.getElementById('slotDay').value;
+            const time = document.getElementById('slotTime').value;
+            if (!title || !time) { alert('أدخل اسم المجموعة ووقت الميعاد'); return; }
+            if (editingSlot !== null) {
+                schedule[editingSlot.day].splice(editingSlot.index, 1);
+                editingSlot = null;
+                document.getElementById('scheduleBtn').innerText = 'إضافة الميعاد';
+            }
+            if(!schedule[day]) schedule[day] = [];
+            schedule[day].push({ title, time });
+            schedule[day].sort((a, b) => a.time.localeCompare(b.time));
+            saveDataToCloud();
+            document.getElementById('slotTitle').value = '';
+            document.getElementById('slotTime').value = '';
+        }
+
+        function toggleDayCollapse(day) {
+            let daySec = document.getElementById('day-content-' + day);
+            let arrow = document.getElementById('day-arrow-' + day);
+            if (daySec.classList.contains('collapsed')) {
+                daySec.classList.remove('collapsed');
+                arrow.innerText = '🔼 (إخفاء)';
+            } else {
+                daySec.classList.add('collapsed');
+                arrow.innerText = '🔽 (إظهار)';
+            }
+        }
+
+        function editSlot(day, index) {
+            let slot = schedule[day][index];
+            document.getElementById('slotTitle').value = slot.title;
+            document.getElementById('slotDay').value = day;
+            document.getElementById('slotTime').value = slot.time;
+            editingSlot = { day, index };
+            document.getElementById('scheduleBtn').innerText = 'حفظ التعديل';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteSlot(day, index) {
+            schedule[day].splice(index, 1);
+            saveDataToCloud();
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('scheduleContainer');
+            container.innerHTML = '';
+            let total = 0;
+            for (let day in schedule) {
+                if (schedule[day].length > 0) {
+                    total += schedule[day].length;
+                    let slotsHTML = schedule[day].map((s, idx) => `
+                        <div class="slot-item">
+                            <div class="slot-info"><span class="slot-time">⏰ ${format12Hour(s.time)}</span><strong>${s.title}</strong></div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-icon btn-edit-sm" onclick="editSlot('${day}', ${idx})">edit</button>
+                                <button class="btn-icon btn-del-sm" onclick="deleteSlot('${day}', ${idx})">del</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    container.innerHTML += `
+                        <div class="day-section">
+                            <div class="day-title" onclick="toggleDayCollapse('${day}')">
+                                <span>📌 يوم ${day} (${schedule[day].length} موعد)</span>
+                                <span id="day-arrow-${day}" style="font-size:0.8rem;">🔼 (إخفاء)</span>
+                            </div>
+                            <div id="day-content-${day}" class="collapsible-content slots-grid">${slotsHTML}</div>
+                        </div>
+                    `;
+                }
+            }
+            if (total === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد مواعيد مسجلة</p>';
+            document.getElementById('scheduleCount').innerText = `${total} موعد`;
+        }
+
+        function saveEvalStudent() {
+            const nameEl = document.getElementById('evalStudentName');
+            const phoneEl = document.getElementById('evalParentPhone');
+            const dayEl = document.getElementById('evalStudentDay');
+
+            if (!nameEl || !nameEl.value.trim()) { alert('أدخل اسم الطالب'); return; }
+
+            const name = nameEl.value.trim();
+            const parentPhone = phoneEl ? phoneEl.value.trim() : '';
+            const day = dayEl ? dayEl.value : 'السبت';
+
+            if (editingEvalIndex !== null) {
+                evalStudents[editingEvalIndex].name = name;
+                evalStudents[editingEvalIndex].parentPhone = parentPhone;
+                evalStudents[editingEvalIndex].day = day;
+                editingEvalIndex = null;
+                document.getElementById('evalBtn').innerText = 'إضافة طالب للتقييمات';
+                document.getElementById('evalBtn').className = 'btn-purple';
+            } else {
+                evalStudents.push({ name, parentPhone, day, months: {}, collapsed: false });
+            }
+
+            saveDataToCloud();
+            nameEl.value = '';
+            if (phoneEl) phoneEl.value = '';
+        }
+
+        function toggleStudentCollapse(sIdx) {
+            evalStudents[sIdx].collapsed = !evalStudents[sIdx].collapsed;
+            saveDataToCloud();
+        }
+
+        function addMonthToStudent(sIdx) {
+            let availableMonths = monthsList.filter(m => !evalStudents[sIdx].months[m]);
+            if (availableMonths.length === 0) { alert('تمت إضافة جميع الشهور!'); return; }
+            let chosenMonth = prompt(`اختر الشهر المراد إضافته:\n${availableMonths.join(', ')}`, availableMonths[0]);
+            if (!chosenMonth || !monthsList.includes(chosenMonth)) return;
+
+            evalStudents[sIdx].months[chosenMonth] = {
+                weeks: { "الأسبوع الأول": "ممتاز", "الأسبوع الثاني": "ممتاز", "الأسبوع الثالث": "ممتاز", "الأسبوع الرابع": "ممتاز" },
+                examScore: 0, examTotal: 100, collapsed: false
+            };
+            saveDataToCloud();
+        }
+
+        function toggleMonthCollapse(sIdx, monthName) {
+            evalStudents[sIdx].months[monthName].collapsed = !evalStudents[sIdx].months[monthName].collapsed;
+            saveDataToCloud();
+        }
+
+        function removeMonthFromStudent(sIdx, monthName) {
+            if (confirm(`حذف شهر ${monthName}؟`)) {
+                delete evalStudents[sIdx].months[monthName];
+                saveDataToCloud();
+            }
+        }
+
+        function updateStudentWeek(sIdx, monthName, weekName, val) {
+            evalStudents[sIdx].months[monthName].weeks[weekName] = val;
+            saveDataToCloud();
+        }
+
+        function updateStudentMonthExam(sIdx, monthName, field, val) {
+            evalStudents[sIdx].months[monthName][field] = val;
+            saveDataToCloud();
+        }
+
+        function addCustomWeek(sIdx, monthName) {
+            let weekTitle = prompt('أدخل اسم الأسبوع أو الإجازة:');
+            if (!weekTitle) return;
+            evalStudents[sIdx].months[monthName].weeks[weekTitle] = 'جيد';
+            saveDataToCloud();
+        }
+
+        function removeWeek(sIdx, monthName, weekName) {
+            delete evalStudents[sIdx].months[monthName].weeks[weekName];
+            saveDataToCloud();
+        }
+
+        function editEvalStudent(index) {
+            let s = evalStudents[index];
+            document.getElementById('evalStudentName').value = s.name;
+            document.getElementById('evalParentPhone').value = s.parentPhone || '';
+            document.getElementById('evalStudentDay').value = s.day;
+            editingEvalIndex = index;
+            let btn = document.getElementById('evalBtn');
+            btn.innerText = 'حفظ التعديل';
+            btn.className = 'btn-warning';
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+        }
+
+        function deleteEvalStudent(index) {
+            if (confirm('حذف سجل تقييم الطالب؟')) {
+                evalStudents.splice(index, 1);
+                saveDataToCloud();
+            }
+        }
+
+        function sendWhatsAppReport(sIdx, monthName) {
+            let s = evalStudents[sIdx];
+            if (!s.parentPhone) { alert('أدخل رقم ولي الأمر!'); return; }
+            let mData = s.months[monthName];
+            let grade = calculateGrade(mData.examScore, mData.examTotal);
+            let weeksSummary = Object.entries(mData.weeks).map(([wName, wVal]) => `- ${wName}: ${wVal}`).join('\n');
+            let msg = `مساء الخير، ولي أمر الطالب/ة المحترم (${s.name}).\n\nنحيطكم علماً بتقرير شهر (${monthName}):\n\nالتقييمات الأسبوعية:\n${weeksSummary}\n\nنتيجة الامتحان الشهري الشامل: ${mData.examScore} من ${mData.examTotal} (${grade.percent}%)\nالتقدير العام: ${grade.text}\n\nمستر بولا فوزى استاذ الكيمياء`;
+            let phone = s.parentPhone.startsWith('0') ? '+20' + s.parentPhone.slice(1) : s.parentPhone;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function renderEvalStudents() {
+            const container = document.getElementById('evalContainer');
+            container.innerHTML = '';
+            let searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+            let filtered = evalStudents.filter(s => s.name.toLowerCase().includes(searchQuery));
+
+            filtered.forEach((s) => {
+                let sIdx = evalStudents.indexOf(s);
+                let monthsHTML = '';
+                let addedMonthsKeys = Object.keys(s.months);
+                let isStudentCollapsed = s.collapsed || false;
+
+                if (addedMonthsKeys.length === 0) {
+                    monthsHTML = `<p style="color:#94a3b8; font-size:0.85rem; text-align:center; padding:10px;">لا توجد شهور مضافة.</p>`;
+                } else {
+                    for (let monthName of addedMonthsKeys) {
+                        let mData = s.months[monthName];
+                        let grade = calculateGrade(mData.examScore, mData.examTotal);
+                        let isCollapsed = mData.collapsed || false;
+
+                        let weeksHTML = Object.entries(mData.weeks).map(([weekName, weekVal]) => `
+                            <div class="week-item">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <label>${weekName}</label>
+                                    <span onclick="removeWeek(${sIdx}, '${monthName}', '${weekName}')" style="cursor:pointer; color:red; font-size:0.7rem;">×</span>
+                                </div>
+                                <select onchange="updateStudentWeek(${sIdx}, '${monthName}', '${weekName}', this.value)" style="margin-top:4px; padding:4px; font-size:0.8rem;">
+                                    <option value="ممتاز" ${weekVal === 'ممتاز' ? 'selected' : ''}>ممتاز</option>
+                                    <option value="جيد" ${weekVal === 'جيد' ? 'selected' : ''}>جيد</option>
+                                    <option value="متوسط" ${weekVal === 'متوسط' ? 'selected' : ''}>متوسط</option>
+                                    <option value="تحت متوسط" ${weekVal === 'تحت متوسط' ? 'selected' : ''}>تحت متوسط</option>
+                                    <option value="ضعيف" ${weekVal === 'ضعيف' ? 'selected' : ''}>ضعيف</option>
+                                    <option value="إجازة" ${weekVal === 'إجازة' ? 'selected' : ''}>إجازة</option>
+                                </select>
+                            </div>
+                        `).join('');
+
+                        monthsHTML += `
+                            <div class="month-box">
+                                <div class="month-header">
+                                    <strong style="color:var(--purple-color); cursor:pointer;" onclick="toggleMonthCollapse(${sIdx}, '${monthName}')">
+                                        📅 شهر ${monthName} ${isCollapsed ? '🔽 (إظهار)' : '🔼 (إخفاء)'}
+                                    </strong>
+                                    <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                                        <button class="btn-small btn-purple" onclick="addCustomWeek(${sIdx}, '${monthName}')">+ أسبوع</button>
+                                        ${s.parentPhone ? `<button class="btn-small btn-whatsapp" onclick="sendWhatsAppReport(${sIdx}, '${monthName}')">💬 واتساب</button>` : ''}
+                                        <button class="btn-icon btn-del-sm" onclick="removeMonthFromStudent(${sIdx}, '${monthName}')">del</button>
+                                    </div>
+                                </div>
+                                <div class="collapsible-content ${isCollapsed ? 'collapsed' : ''}">
+                                    <div class="weeks-container">${weeksHTML}</div>
+                                    <div class="exam-box">
+                                        <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                                            <label style="font-size:0.8rem; margin:0;">امتحان شهري:</label>
+                                            <input type="number" value="${mData.examScore}" onchange="updateStudentMonthExam(${sIdx}, '${monthName}', 'examScore', Number(this.value))" style="width:60px; padding:4px;">
+                                            <span>/</span>
+                                            <input type="number" value="${mData.examTotal}" onchange="updateStudentMonthExam(${sIdx}, '${monthName}', 'examTotal', Number(this.value))" style="width:60px; padding:4px;">
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="font-weight:bold; font-size:0.85rem;">${grade.percent}%</span>
+                                            <span class="grade-badge grade-${grade.text.replace(/\s+/g, '-')}">${grade.text}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                container.innerHTML += `
+                    <div class="student-card" style="border-right: 5px solid var(--purple-color);">
+                        <div class="student-header" onclick="toggleStudentCollapse(${sIdx})">
+                            <div>
+                                <strong style="font-size: 1.1rem; color:var(--purple-color);">👨‍🎓 ${s.name}</strong>
+                                <span style="font-size:0.8rem; background:#cbd5e1; color:#334155; padding:2px 6px; border-radius:4px; margin-right:5px;">مجموعة ${s.day}</span>
+                            </div>
+                            <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation()">
+                                <button class="btn-small btn-success" onclick="addMonthToStudent(${sIdx})">+ شهر</button>
+                                <button class="btn-icon btn-edit-sm" onclick="editEvalStudent(${sIdx})">edit</button>
+                                <button class="btn-icon btn-del-sm" onclick="deleteEvalStudent(${sIdx})">del</button>
+                                <span style="font-size:0.8rem; font-weight:bold; cursor:pointer; color:var(--purple-color);" onclick="toggleStudentCollapse(${sIdx})">${isStudentCollapsed ? '🔽 إظهار' : '🔼 إخفاء'}</span>
+                            </div>
+                        </div>
+                        <div class="collapsible-content ${isStudentCollapsed ? 'collapsed' : ''}" style="margin-top:12px;">
+                            ${monthsHTML}
+                        </div>
+                    </div>
+                `;
+            });
+            if (filtered.length === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد نتائج</p>';
+            document.getElementById('evalCount').innerText = `${evalStudents.length} طالب`;
+        }
+
+        function savePayStudent() {
+            const nameEl = document.getElementById('payStudentName');
+            const dayEl = document.getElementById('payStudentDay');
+            if (!nameEl || !nameEl.value.trim()) { alert('أدخل اسم الطالب'); return; }
+            payStudents.push({ name: nameEl.value.trim(), day: dayEl ? dayEl.value : 'السبت', payments: [], collapsed: false });
+            saveDataToCloud();
+            nameEl.value = '';
+        }
+
+        function togglePayStudentCollapse(index) {
+            payStudents[index].collapsed = !payStudents[index].collapsed;
+            saveDataToCloud();
+        }
+
+        function recordSession(index) {
+            let today = getTodayDateISO();
+            if (payStudents[index].payments.includes(today)) { alert('مسجل مسبقاً!'); return; }
+            payStudents[index].payments.push(today);
+            payStudents[index].payments.sort();
+            saveDataToCloud();
+        }
+
+        function addPastSession(index) {
+            let d = prompt('أدخل التاريخ (YYYY-MM-DD):', getTodayDateISO());
+            if (!d) return;
+            payStudents[index].payments.push(d);
+            payStudents[index].payments.sort();
+            saveDataToCloud();
+        }
+
+        function removePayment(sIdx, pIdx) {
+            payStudents[sIdx].payments.splice(pIdx, 1);
+            saveDataToCloud();
+        }
+
+        function resetPackage(index) {
+            if (confirm('تصفية الـ 8 حصص؟')) {
+                payStudents[index].payments = [];
+                saveDataToCloud();
+            }
+        }
+
+        function deletePayStudent(index) {
+            if (confirm('حذف؟')) {
+                payStudents.splice(index, 1);
+                saveDataToCloud();
+            }
+        }
+
+        function renderPayStudents() {
+            const container = document.getElementById('paymentContainer');
+            container.innerHTML = '';
+            let searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+            let filtered = payStudents.filter(s => s.name.toLowerCase().includes(searchQuery));
+
+            filtered.forEach((s) => {
+                let index = payStudents.indexOf(s);
+                let count = s.payments.length;
+                let isCollapsed = s.collapsed || false;
+                let alertBadge = count >= 8 ? `<span style="background:#fee2e2; color:#dc2626; padding:3px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold;">⚠️ 8 حصص</span>` : '';
+                let pills = s.payments.map((date, pIdx) => `<span class="payment-pill paid">✓ ${date} <span onclick="removePayment(${index}, ${pIdx})" style="cursor:pointer; color:red;">×</span></span>`).join('');
+
+                container.innerHTML += `
+                    <div class="student-card" style="border-right: 5px solid var(--success-color);">
+                        <div class="student-header" onclick="togglePayStudentCollapse(${index})">
+                            <div>
+                                <strong style="font-size: 1.1rem; color:var(--success-color);">👨‍🎓 ${s.name}</strong>
+                                <span style="font-size:0.8rem; background:#cbd5e1; color:#334155; padding:2px 6px; border-radius:4px; margin-right:5px;">مجموعة ${s.day}</span>
+                                <span style="font-size:0.8rem; color:var(--primary-color); font-weight:bold;">(حصص: ${count})</span>
+                            </div>
+                            <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation()">
+                                ${alertBadge}
+                                <button class="btn-icon btn-del-sm" onclick="deletePayStudent(${index})">del</button>
+                                <span style="font-size:0.8rem; font-weight:bold; cursor:pointer; color:var(--success-color);" onclick="togglePayStudentCollapse(${index})">${isCollapsed ? '🔽 إظهار' : '🔼 إخفاء'}</span>
+                            </div>
+                        </div>
+                        <div class="collapsible-content ${isCollapsed ? 'collapsed' : ''}" style="margin-top:12px;">
+                            <div class="payments-container">
+                                <span style="font-size:0.8rem; font-weight:bold;">الحصص:</span>
+                                ${pills || '<span style="font-size:0.8rem; color:#94a3b8;">لا توجد حصص</span>'}
+                            </div>
+                            <div class="student-actions">
+                                <button class="btn-small btn-success" onclick="recordSession(${index})">✓ حصة اليوم</button>
+                                <button class="btn-small btn-warning" onclick="addPastSession(${index})">📅 حصة قديمة</button>
+                                ${count >= 8 ? `<button class="btn-small btn-danger" onclick="resetPackage(${index})">🔄 تصفية</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            if (filtered.length === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد نتائج</p>';
+            document.getElementById('paymentCount').innerText = `${payStudents.length} طالب`;
+        }
+
+        loadDataFromCloud();
+    </script>
+</body>
+</html>
