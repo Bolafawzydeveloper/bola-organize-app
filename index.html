@@ -465,12 +465,17 @@
             saveDataToCloud();
         }
 
-        function renderSchedule() {
+       function renderSchedule() {
             const container = document.getElementById('scheduleContainer');
             container.innerHTML = '';
             let total = 0;
-            for (let day in schedule) {
-                if (schedule[day].length > 0) {
+            
+            // 1. مصفوفة ثابتة لإجبار التطبيق على هذا الترتيب دائماً
+            const daysOrder = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+            
+            // 2. المرور على الأيام بالترتيب الصحيح
+            daysOrder.forEach((day) => {
+                if (schedule[day] && schedule[day].length > 0) {
                     total += schedule[day].length;
                     let slotsHTML = schedule[day].map((s, idx) => `
                         <div class="slot-item">
@@ -492,7 +497,8 @@
                         </div>
                     `;
                 }
-            }
+            });
+
             if (total === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد مواعيد مسجلة</p>';
             document.getElementById('scheduleCount').innerText = `${total} موعد`;
         }
