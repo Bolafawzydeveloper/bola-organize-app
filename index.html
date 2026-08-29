@@ -126,7 +126,7 @@
         .form-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 15px; }
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
 
-        .form-group { margin-bottom: 10px; }
+        .form-box.form-group { margin-bottom: 10px; }
         label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.85rem; color: #334155; }
         input, select, textarea { width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; outline: none; background: #f8fafc; }
         input:focus, select:focus { border-color: var(--primary-color); background: #fff; }
@@ -144,9 +144,9 @@
         .btn-whatsapp { background-color: var(--whatsapp-color); color: white; }
         .btn-purple { background-color: var(--purple-color); color: white; }
         /* هذا الكلاس يضمن أن التكبير والتصغير يحدث بشكل انسيابي */
-        .form-group {transition: all 0.3s ease-in-out;cursor: pointer;}
+        .form-group.form-box {transition: all 0.3s ease-in-out;cursor: pointer;}
         /* هذا الكلاس سيتم إضافته بواسطة الجافاسكريبت عند الضغط */
-        .form-group.expanded {width: 200% !important; /* يمكنك تغيير النسبة حسب احتياجك */transform: scale(1.05);z-index: 10; /* لضمان ظهوره فوق العناصر الأخرى */}
+        .form-box.expanded {width: 200% !important; /* يمكنك تغيير النسبة حسب احتياجك */transform: scale(1.05);z-index: 10; /* لضمان ظهوره فوق العناصر الأخرى */}
         .day-section { background: #f1f5f9; padding: 18px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; width: 100%; }
         .day-title { font-weight: 700; color: var(--primary-color); margin-bottom: 10px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #e2e8f0; padding: 10px 15px; border-radius: 8px; }
         
@@ -245,8 +245,8 @@
         <div class="card card-eval">
             <h2><span>📊 سجل التقييمات الأسبوعية والشهري</span><span style="font-size: 0.8rem; color: #64748b;" id="evalCount">0 طالب</span></h2>
             <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr auto;">
-                <div class="form-group" style="margin-bottom:0;"><label>اسم الطالب الكامل</label><input type="text" id="evalStudentName" placeholder="أحمد محمد"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>رقم ولي الأمر (واتساب)</label><input type="text" id="evalParentPhone" placeholder="01270546171"></div>
+                <div class="form-box" style="margin-bottom:0;"><label>اسم الطالب </label><input type="text" id="evalStudentName" placeholder="student name"></div>
+                <div class="form-box" style="margin-bottom:0;"><label>رقم ولي الأمر (واتساب)</label><input type="text" id="evalParentPhone" placeholder="01270546171"></div>
                 <div class="form-group" style="margin-bottom:0;"><label>المجموعة</label>
                     <select id="evalStudentDay">
                         <option value="السبت">السبت</option><option value="الأحد">الأحد</option><option value="الإثنين">الإثنين</option><option value="الثلاثاء">الثلاثاء</option><option value="الأربعاء">الأربعاء</option><option value="الخميس">الخميس</option><option value="الجمعة">الجمعة</option>
@@ -260,7 +260,7 @@
         <div class="card card-pay">
             <h2><span>💰 متابعة حصص الطلاب والتحصيل</span><span style="font-size: 0.8rem; color: #64748b;" id="paymentCount">0 طالب</span></h2>
             <div class="form-row" style="grid-template-columns: 2fr 1fr auto;">
-                <div class="form-group" style="margin-bottom:0;"><label>اسم الطالب الكامل</label><input type="text" id="payStudentName" placeholder=" اسم الطالب"></div>
+                <div class="form-box" style="margin-bottom:0;"><label>اسم الطالب </label><input type="text" id="payStudentName" placeholder="student name"></div>
                 <div class="form-group" style="margin-bottom:0;"><label>المجموعة</label>
                     <select id="payStudentDay">
                         <option value="السبت">السبت</option><option value="الأحد">الأحد</option><option value="الإثنين">الإثنين</option><option value="الثلاثاء">الثلاثاء</option><option value="الأربعاء">الأربعاء</option><option value="الخميس">الخميس</option><option value="الجمعة">الجمعة</option>
@@ -286,7 +286,7 @@
 
     <script>
         // ==========================================
-        // ⚙️ الصق كود الـ Firebase الخاص بك هنا:
+        // Firebase الخاص بك هنا:
         // ==========================================
         const firebaseConfig = {
   apiKey: "AIzaSyBu8B_1rtTuTX0Uzja4W6ZKmfDdHmHvnTc",
@@ -813,14 +813,14 @@
         document.addEventListener('click', function(event) {
             // تحديد ما إذا كان الضغط تم داخل المربع
             // تذكر استبدال '.student-card' باسم الكلاس الذي تستخدمه
-            const box = event.target.closest('.form-group'); 
+            const box = event.target.closest('.form-box'); 
 
             if (box) {
                 // إذا ضغطت داخل المربع، يتم تكبيره (استخدمنا add بدلاً من toggle لكي لا يغلق إذا ضغطت بداخله مرة أخرى بالخطأ)
                 box.classList.add('expanded');
             } else {
                 // إذا ضغطت في مكان فارغ (خارج المربع)، يتم إغلاق وتصغير كل المربعات المفتوحة
-                document.querySelectorAll('.form-group.expanded').forEach(b => {
+                document.querySelectorAll('.form-box.expanded').forEach(b => {
                     b.classList.remove('expanded');
                 });
             }
@@ -830,7 +830,7 @@
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 // عند الضغط على إنتر، يتم إغلاق أي مربع مفتوح
-                document.querySelectorAll('.form-group.expanded').forEach(b => {
+                document.querySelectorAll('.form-box.expanded').forEach(b => {
                     b.classList.remove('expanded');
                 });
             }
