@@ -4,12 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منظومة إدارة الدروس - مستر / بولا فوزي</title>
+    <!-- الأيقونة العادية التي تظهر في شريط المتصفح (Favicon) -->
+    <link rel="icon" href="/media/images (4).jpeg" type="image/png">
+<!-- الأيقونة التي ستظهر على شاشة الهاتف (للأيفون والأندرويد) -->
+    <link rel="apple-touch-icon" href="/media/no back.png">
+<!-- اسم التطبيق الذي سيظهر تحت الأيقونة في شاشة الهاتف -->
+    <meta name="apple-mobile-web-app-title" content="منظومة الدروس">
+    <meta name="application-name" content="منظومة الدروس">
+    <meta name="theme-color" content="#252467">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- استدعاء مكتبات Firebase السحابية والمصادقة -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <!-- الأيقونة العادية التي تظهر في شريط المتصفح (Favicon) -->
 
     <style>
         :root {
@@ -134,7 +143,10 @@
         .btn-warning { background-color: var(--warning-color); color: white; }
         .btn-whatsapp { background-color: var(--whatsapp-color); color: white; }
         .btn-purple { background-color: var(--purple-color); color: white; }
-
+        /* هذا الكلاس يضمن أن التكبير والتصغير يحدث بشكل انسيابي */
+        .form-group {transition: all 0.3s ease-in-out;cursor: pointer;}
+        /* هذا الكلاس سيتم إضافته بواسطة الجافاسكريبت عند الضغط */
+        .form-group.expanded {width: 100% !important; /* يمكنك تغيير النسبة حسب احتياجك */transform: scale(1.05);z-index: 10; /* لضمان ظهوره فوق العناصر الأخرى */}
         .day-section { background: #f1f5f9; padding: 18px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; width: 100%; }
         .day-title { font-weight: 700; color: var(--primary-color); margin-bottom: 10px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #e2e8f0; padding: 10px 15px; border-radius: 8px; }
         
@@ -248,7 +260,7 @@
         <div class="card card-pay">
             <h2><span>💰 متابعة حصص الطلاب والتحصيل</span><span style="font-size: 0.8rem; color: #64748b;" id="paymentCount">0 طالب</span></h2>
             <div class="form-row" style="grid-template-columns: 2fr 1fr auto;">
-                <div class="form-group" style="margin-bottom:0;"><label>اسم الطالب الكامل</label><input type="text" id="payStudentName" placeholder="أحمد محمد"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>اسم الطالب الكامل</label><input type="text" id="payStudentName" placeholder=" اسم الطالب"></div>
                 <div class="form-group" style="margin-bottom:0;"><label>المجموعة</label>
                     <select id="payStudentDay">
                         <option value="السبت">السبت</option><option value="الأحد">الأحد</option><option value="الإثنين">الإثنين</option><option value="الثلاثاء">الثلاثاء</option><option value="الأربعاء">الأربعاء</option><option value="الخميس">الخميس</option><option value="الجمعة">الجمعة</option>
@@ -798,6 +810,15 @@
             if (filtered.length === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد نتائج</p>';
             document.getElementById('paymentCount').innerText = `${payStudents.length} طالب`;
         }
+       // تحديد جميع المربعات التي تريد تطبيق الفكرة عليها
+const boxes = document.querySelectorAll('.form-group'); 
+
+boxes.forEach(box => {
+    box.addEventListener('click', function() {
+        // toggle: تقوم بإضافة الكلاس إذا لم يكن موجوداً، وتحذفه إذا كان موجوداً
+        this.classList.toggle('expanded');
+    });
+}); 
 
     </script>
 </body>
