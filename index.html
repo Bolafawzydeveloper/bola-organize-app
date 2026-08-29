@@ -810,15 +810,14 @@
             if (filtered.length === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد نتائج</p>';
             document.getElementById('paymentCount').innerText = `${payStudents.length} طالب`;
         }
-       // تحديد جميع المربعات التي تريد تطبيق الفكرة عليها
-const boxes = document.querySelectorAll('.form-group'); 
-
-boxes.forEach(box => {
-    box.addEventListener('click', function() {
-        // toggle: تقوم بإضافة الكلاس إذا لم يكن موجوداً، وتحذفه إذا كان موجوداً
-        this.classList.toggle('expanded');
-    });
-}); 
+                document.addEventListener('click', function(event) {
+        
+            const box = event.target.closest('.form-group'); 
+            
+            if (box) {
+                box.classList.toggle('expanded');
+            }
+        });
 
     </script>
 </body>
