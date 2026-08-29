@@ -810,12 +810,29 @@
             if (filtered.length === 0) container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 15px;">لا توجد نتائج</p>';
             document.getElementById('paymentCount').innerText = `${payStudents.length} طالب`;
         }
-                document.addEventListener('click', function(event) {
-        
+        document.addEventListener('click', function(event) {
+            // تحديد ما إذا كان الضغط تم داخل المربع
+            // تذكر استبدال '.student-card' باسم الكلاس الذي تستخدمه
             const box = event.target.closest('.form-group'); 
-            
+
             if (box) {
-                box.classList.toggle('expanded');
+                // إذا ضغطت داخل المربع، يتم تكبيره (استخدمنا add بدلاً من toggle لكي لا يغلق إذا ضغطت بداخله مرة أخرى بالخطأ)
+                box.classList.add('expanded');
+            } else {
+                // إذا ضغطت في مكان فارغ (خارج المربع)، يتم إغلاق وتصغير كل المربعات المفتوحة
+                document.querySelectorAll('.form-group.expanded').forEach(b => {
+                    b.classList.remove('expanded');
+                });
+            }
+        });
+
+        // 2. التعامل مع زر Enter للانتهاء من الكتابة
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                // عند الضغط على إنتر، يتم إغلاق أي مربع مفتوح
+                document.querySelectorAll('.form-group.expanded').forEach(b => {
+                    b.classList.remove('expanded');
+                });
             }
         });
 
