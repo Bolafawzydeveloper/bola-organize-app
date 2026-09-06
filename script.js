@@ -10,7 +10,7 @@ const firebaseConfig = {
   measurementId: "G-P4B9SB60JE"
 };
     firebase.initializeApp(firebaseConfig);
-    
+
     const db = firebase.firestore();
     const auth = firebase.auth();
     let unsubscribeSnapshot = null; // متغير لحفظ اتصال البيانات
@@ -65,15 +65,14 @@ const firebaseConfig = {
             auth.signOut();
         }
     }
-    // ---------------------------------
-
+ 
     function saveDataToCloud() {
-        if(!auth.currentUser) return; // حماية إضافية
+        if(!auth.currentUser) return; 
         db.collection("teacherData").doc("bola_data").set({
             schedule: schedule,
             evalStudents: evalStudents,
             payStudents: payStudents
-        })
+        }, { merge: true })
         .then(() => {
             document.getElementById('syncStatus').innerText = "☁️ متزامن مع السحابة";
         })
@@ -414,7 +413,7 @@ const firebaseConfig = {
                             <span style="font-size:0.8rem; font-weight:bold; cursor:pointer; color:var(--purple-color);" onclick="toggleStudentCollapse(${sIdx})">${isStudentCollapsed ? '🔽 إظهار' : '🔼 إخفاء'}</span>
                         </div>
                     </div>
-                    <div class="collapsible-content ${isStudentCollapsed ? 'collapsed' : ''}" style="margin-top:12px;">
+                    <div class="collapsible-content ${isStudentCollapsed ? 'collapsed' : ''}" style="margin-top:5px;">
                         ${monthsHTML}
                     </div>
                 </div>
@@ -553,4 +552,4 @@ window.addEventListener('load', () => {
     .catch(err => {
         console.log('Service Worker registration failed: ', err);
     });
-})}
+});}
