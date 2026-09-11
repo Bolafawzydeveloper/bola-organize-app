@@ -50,11 +50,20 @@
 
             <!-- القسم الأيسر: البحث -->
             <div class="header-left">
-                <input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث عن طالب...">
+                <div class="search">
+                <button id="themeToggleBtn" style="padding: 0; cursor: pointer; border-radius: 8px;"> Light ☀️</button>
+                <div><input type="text" id="searchInput" oninput="renderApp()" placeholder="🔍 بحث عن طالب..."> </div></div>
+                <div><select id="onSelect">
+
+                        <option value="#">Chose Section</option>
+                        <option value="card-1">📅 جدول المواعيد الأسبوعي</option>
+                        <option value="cardEval">📊 سجل التقييمات الأسبوعية والشهري</option>
+                        <option value="cardPay">💰 متابعة حصص الطلاب والتحصيل</option>
+                </select></div>
             </div>
         </header>
 
-        <div class="card card-schedule">
+        <div class="card card-schedule " id="card-1">
             <h2><span>📅 جدول المواعيد الأسبوعي</span><span style="font-size: 0.8rem; color: #64748b;" id="scheduleCount">0 موعد</span></h2>
             <div class="form-row">
                 <div class="form-group" style="margin-bottom:0;"><label>المجموعة / الدرس</label><input type="text" id="slotTitle" placeholder="مثال: مجموعة اللغات"></div>
@@ -69,7 +78,7 @@
             <div id="scheduleContainer" style="margin-top: 20px;"></div>
         </div>
 
-        <div class="card card-eval">
+        <div class="card card-eval" id="cardEval">
             <h2><span>📊 سجل التقييمات الأسبوعية والشهري</span><span style="font-size: 0.8rem; color: #64748b;" id="evalCount">0 طالب</span></h2>
             <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr auto;">
                 <div class="form-box" style="margin-bottom:0;"><label>اسم الطالب </label><input type="text" id="evalStudentName" placeholder="student name"></div>
@@ -84,7 +93,7 @@
             <div id="evalContainer" style="margin-top: 20px;"></div>
         </div>
 
-        <div class="card card-pay">
+        <div class="card card-pay" id="cardPay">
             <h2><span>💰 متابعة حصص الطلاب والتحصيل</span><span style="font-size: 0.8rem; color: #64748b;" id="paymentCount">0 طالب</span></h2>
             <div class="form-row" style="grid-template-columns: 2fr 1fr auto;">
                 <div class="form-box" style="margin-bottom:0;"><label>اسم الطالب </label><input type="text" id="payStudentName" placeholder="student name"></div>

@@ -96,6 +96,38 @@ const firebaseConfig = {
             }
         });
     }
+    
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    function updateButtonIcon(){
+        if(document.body.classList.contains('light-mode')){
+            themeToggleBtn.textContent ='dark '
+        } else{themeToggleBtn.textContent ='Light ☀️'}
+    }
+    function applySavedTheme(){
+        const savedTheme = localStorage.getItem('site_theme');
+        if (savedTheme ==='light'){
+            document.body.classList.add('light-mode');}
+            updateButtonIcon()
+
+        }
+    function toggleTheme(){
+        document.body.classList.toggle('light-mode');
+        let currentTheme = 'dark';
+        if (document.body.classList.contains('light-mode')){
+            currentTheme = 'light';}
+        localStorage.setItem('site-theme', currentTheme);
+        updateButtonIcon()
+    }
+    applySavedTheme();
+    themeToggleBtn.addEventListener('click',toggleTheme);
+    
+
+document.getElementById("onSelect").addEventListener("change",function(){
+    if (this.value !==""){
+        document.getElementById(this.value).scrollIntoView({behavior:"smooth"})
+        this.selectedIndex = 0;
+    }
+})
 
     function format12Hour(time24) {
         if (!time24) return '';
@@ -187,8 +219,6 @@ const firebaseConfig = {
         const container = document.getElementById('scheduleContainer');
         container.innerHTML = '';
         let total = 0;
-        
-        // 1. مصفوفة ثابتة لإجبار التطبيق على هذا الترتيب دائماً
         const daysOrder = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
         
         // 2. المرور على الأيام بالترتيب الصحيح
@@ -209,7 +239,7 @@ const firebaseConfig = {
                     <div class="day-section">
                         <div class="day-title" onclick="toggleDayCollapse('${day}')">
                             <span>📌 يوم ${day} (${schedule[day].length} موعد)</span>
-                            <span id="day-arrow-${day}" style="font-size:0.8rem;">🔼 (إخفاء)</span>
+                            <span id="day-arrow-${day}" style="font-size:0.8rem;color:white;">🔼 (إخفاء)</span>
                         </div>
                         <div id="day-content-${day}" class="collapsible-content slots-grid">${slotsHTML}</div>
                     </div>
@@ -373,8 +403,7 @@ const firebaseConfig = {
                                 <strong style="color:var(--purple-color); cursor:pointer;" onclick="toggleMonthCollapse(${sIdx}, '${monthName}')">
                                     📅 شهر ${monthName} ${isCollapsed ? '🔽 (إظهار)' : '🔼 (إخفاء)'}
                                 </strong>
-                                <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-                                    <button class="btn-small btn-purple" onclick="addCustomWeek(${sIdx}, '${monthName}')">+ أسبوع</button>
+                                <div style="display:flex; gap:5px; align-items:center; flex-wrap:nowrap;">
                                     ${s.parentPhone ? `<button class="btn-small btn-whatsapp" onclick="sendWhatsAppReport(${sIdx}, '${monthName}')">💬 واتساب</button>` : ''}
                                     <button class="btn-icon btn-del-sm" onclick="removeMonthFromStudent(${sIdx}, '${monthName}')">del</button>
                                 </div>
@@ -382,13 +411,13 @@ const firebaseConfig = {
                             <div class="collapsible-content ${isCollapsed ? 'collapsed' : ''}">
                                 <div class="weeks-container">${weeksHTML}</div>
                                 <div class="exam-box">
-                                    <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                                    <div style="display:flex; align-items:center; gap:4px; flex:1;">
                                         <label style="font-size:0.8rem; margin:0;">امتحان شهري:</label>
                                         <input type="number" value="${mData.examScore}" onchange="updateStudentMonthExam(${sIdx}, '${monthName}', 'examScore', Number(this.value))" style="width:60px; padding:4px;">
                                         <span>/</span>
                                         <input type="number" value="${mData.examTotal}" onchange="updateStudentMonthExam(${sIdx}, '${monthName}', 'examTotal', Number(this.value))" style="width:60px; padding:4px;">
                                     </div>
-                                    <div style="display:flex; align-items:center; gap:6px;">
+                                    <div style="display:flex; align-items:center; gap:3px;">
                                         <span style="font-weight:bold; font-size:0.85rem;">${grade.percent}%</span>
                                         <span class="grade-badge grade-${grade.text.replace(/\s+/g, '-')}">${grade.text}</span>
                                     </div>
@@ -400,7 +429,7 @@ const firebaseConfig = {
             }
 
             container.innerHTML += `
-                <div class="student-card" style="border-right: 5px solid var(--purple-color);">
+                <div class="student-card" style="border-right: 5px solid var(--purple-color);margin-top: 30px">
                     <div class="student-header" onclick="toggleStudentCollapse(${sIdx})">
                         <div>
                             <strong style="font-size: 1.1rem; color:var(--purple-color);">👨‍🎓 ${s.name}</strong>
