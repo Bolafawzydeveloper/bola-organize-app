@@ -133,7 +133,7 @@ document.getElementById("onSelect").addEventListener("change",function(){
         if (!time24) return '';
         let [hours, minutes] = time24.split(':');
         let h = parseInt(hours);
-        let period = h >= 12 ? 'م' : 'ص';
+        let period = h >= 12 ? 'Pm' : 'Am';
         h = h % 12;
         h = h ? h : 12;
         return `${h}:${minutes} ${period}`;

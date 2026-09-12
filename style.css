@@ -14,7 +14,7 @@
     --purple-color: #7e22ce;
 }
 *{ margin: 0; padding: 0; box-sizing: border-box; font-family: 'cairo', sans-serif; text-decoration: none; list-style: none; outline: none; border: none;}
-body{ background-color:#000000; color: var(--text-color); transition: background-color 0.3s ease, color 0.3s ease;}
+body{ background-color:#000000; color: var(--text-color); transition: background-color 0.3s ease, color 0.3s ease;overflow-x: hidden;}
 body.light-mode {
     --primary-color: #1a0a9c;
     --secondary-color:#4b0ebf;
@@ -30,7 +30,8 @@ body.light-mode {
     input ,select, .slot-info, .slot-item, .student-card,.month-box  {background-color:#ffffff;}
     input:focus ,select:focus, .slot-item, .student-card,.month-box:focus {background-color:#ffffff;}
     background-color:#d5d9e3;
-    label{color: #000000;}
+    label{color: #000000;};
+    overflow-x: hidden;
 }
 body.light-mode #themeToggleBtn {
     background-color: #000000;
@@ -175,7 +176,7 @@ input, select, textarea {
     box-shadow: 0 0 10px var(--success-color), inset 0 2px 4px var(--shadow-color); }
 
 /* ---  (Buttons) ---- */
-button { background-color: var(--primary-color); color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+button { background-color: var(--primary-color); color: white; border: none; padding: 2px 1px; border-radius: 10px; font-weight: 700; cursor: pointer; white-space: wrap; transition: 0.3s; }
 button:active { transform: translateY(2px); }
 button:hover { filter: brightness(1.2); box-shadow: 0 0 12px currentColor; } /* توهج الزر بنفس لونه */
 
